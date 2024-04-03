@@ -1,21 +1,23 @@
 package service;
 
 import storage.Epic;
+import storage.Status;
 import storage.Subtask;
 import storage.Task;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 
-public class Manager {
-    private HashMap<Integer, Task> tasks = new HashMap<>();
-    private HashMap<Integer, Epic> epics = new HashMap<>();
-    private HashMap<Integer, Subtask> subtasks = new HashMap<>();
-    private HashMap<Integer, Task> allTasks = new HashMap<>();
-    int id = 1;
+public class InMemoryTaskManager implements TaskManager {
+    private final HashMap<Integer, Task> tasks = new HashMap<>();
+    private final HashMap<Integer, Epic> epics = new HashMap<>();
+    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    private final HashMap<Integer, Task> allTasks = new HashMap<>();
+    private int id = 1;
+    private final HistoryManager historyManager = Managers.getDefaultHistory();
 
+    @Override
     public Task createTask(Task task) {
         Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus());
         newTask.setId(id);
@@ -25,6 +27,7 @@ public class Manager {
         return newTask;
     }
 
+    @Override
     public Task updateTask(Task task, int id) {
         if (tasks.containsKey(id)) {
             task.setId(id);
@@ -36,6 +39,7 @@ public class Manager {
         return task;
     }
 
+    @Override
     public ArrayList<Task> getAllTasks() {
         ArrayList<Task> listTasks = new ArrayList<>();
         for (Task task : allTasks.values()) {
@@ -44,8 +48,10 @@ public class Manager {
         return listTasks;
     }
 
+    @Override
     public Task getTask(int id) {
         if (allTasks.containsKey(id)) {
+            historyManager.add(allTasks.get(id));
             return allTasks.get(id);
         } else {
             System.out.println("Задачи с ID " + id + " не существует!");
@@ -53,6 +59,7 @@ public class Manager {
         return null;
     }
 
+    @Override
     public void removeById(int id) {
         if (allTasks.containsKey(id)) {
             allTasks.remove(id);
@@ -68,6 +75,7 @@ public class Manager {
         }
     }
 
+    @Override
     public void removeAll() {
         allTasks.clear();
         tasks.clear();
@@ -75,6 +83,7 @@ public class Manager {
         subtasks.clear();
     }
 
+    @Override
     public Epic createEpic(Epic epic) {
         Epic newEpic = new Epic(epic.getName(), epic.getDescription());
         newEpic.setId(id);
@@ -85,6 +94,7 @@ public class Manager {
         return newEpic;
     }
 
+    @Override
     public Epic updateEpic(Epic epic, int id) {
         if (epics.containsKey(id)) {
             epic.setId(id);
@@ -99,6 +109,7 @@ public class Manager {
         return epic;
     }
 
+    @Override
     public Subtask createSubtask(Subtask subtask, int epicId) {
         if (epics.containsKey(epicId)) {
             Subtask newSubtask = new Subtask(subtask.getName(), subtask.getDescription(), subtask.getStatus());
@@ -116,6 +127,7 @@ public class Manager {
         return null;
     }
 
+    @Override
     public Subtask updateSubtask(Subtask subtask, int id) {
         if (subtasks.containsKey(id)) {
             Subtask oldSubtask = subtasks.get(id);
@@ -139,32 +151,37 @@ public class Manager {
         return null;
     }
 
+    @Override
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
+    }
+
     private void updateId() {
         id++;
     }
 
-    private String findStatus(Epic epic) {
-        ArrayList<String> newStatus = new ArrayList<>();
-        ArrayList<String> doneStatus = new ArrayList<>();
-        ArrayList<String> inProgressStatus = new ArrayList<>();
+    private Status findStatus(Epic epic) {
+        ArrayList<Status> newStatus = new ArrayList<>();
+        ArrayList<Status> doneStatus = new ArrayList<>();
+        ArrayList<Status> inProgressStatus = new ArrayList<>();
         ArrayList<Subtask> epicSubtasks = epic.getSubtasks();
         if (epicSubtasks.isEmpty()) {
-            return "NEW";
+            return Status.NEW;
         }
         for (Subtask subtask : epicSubtasks) {
-            if (subtask.getStatus().equals("NEW")) {
+            if (subtask.getStatus() == Status.NEW) {
                 newStatus.add(subtask.getStatus());
-            } else if (subtask.getStatus().equals("IN_PROGRESS")) {
+            } else if (subtask.getStatus() == Status.IN_PROGRESS) {
                 inProgressStatus.add(subtask.getStatus());
-            } else if(subtask.getStatus().contains("DONE")) {
+            } else if (subtask.getStatus() == Status.DONE) {
                 doneStatus.add(subtask.getStatus());
             }
         }
         if (!newStatus.isEmpty() && doneStatus.isEmpty() && inProgressStatus.isEmpty()) {
-            return "NEW";
+            return Status.NEW;
         } else if (!doneStatus.isEmpty() && newStatus.isEmpty() && inProgressStatus.isEmpty()) {
-            return "DONE";
+            return Status.DONE;
         }
-        return "IN_PROGRESS";
+        return Status.IN_PROGRESS;
     }
 }
