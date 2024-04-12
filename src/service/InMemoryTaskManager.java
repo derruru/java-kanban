@@ -63,6 +63,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeById(int id) {
         if (allTasks.containsKey(id)) {
             allTasks.remove(id);
+            historyManager.remove(id);
             if (tasks.containsKey(id)) {
                 tasks.remove(id);
             } else if (epics.containsKey(id)) {
@@ -77,6 +78,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeAll() {
+        for(Task task : allTasks.values()) {
+            historyManager.remove(task.getId());
+        }
         allTasks.clear();
         tasks.clear();
         epics.clear();
