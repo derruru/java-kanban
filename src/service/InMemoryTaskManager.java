@@ -10,25 +10,24 @@ import java.util.HashMap;
 import java.util.List;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> tasks = new HashMap<>();
-    private final HashMap<Integer, Epic> epics = new HashMap<>();
-    private final HashMap<Integer, Subtask> subtasks = new HashMap<>();
-    private final HashMap<Integer, Task> allTasks = new HashMap<>();
+    protected final HashMap<Integer, Task> tasks = new HashMap<>();
+    protected final HashMap<Integer, Epic> epics = new HashMap<>();
+    protected final HashMap<Integer, Subtask> subtasks = new HashMap<>();
+    protected final HashMap<Integer, Task> allTasks = new HashMap<>();
     private int id = 1;
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
-    public Task createTask(Task task) {
+    public void createTask(Task task) {
         Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus());
         newTask.setId(id);
         tasks.put(id, newTask);
         allTasks.put(id, newTask);
         updateId();
-        return newTask;
     }
 
     @Override
-    public Task updateTask(Task task, int id) {
+    public void updateTask(Task task, int id) {
         if (tasks.containsKey(id)) {
             task.setId(id);
             tasks.put(id, task);
@@ -36,7 +35,6 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             System.out.println("Задачи с ID " + id + " не существует!");
         }
-        return task;
     }
 
     @Override
@@ -88,18 +86,17 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Epic createEpic(Epic epic) {
+    public void createEpic(Epic epic) {
         Epic newEpic = new Epic(epic.getName(), epic.getDescription());
         newEpic.setId(id);
         newEpic.setStatus(findStatus(newEpic));
         epics.put(id, newEpic);
         allTasks.put(id, newEpic);
         updateId();
-        return newEpic;
     }
 
     @Override
-    public Epic updateEpic(Epic epic, int id) {
+    public void updateEpic(Epic epic, int id) {
         if (epics.containsKey(id)) {
             epic.setId(id);
             Epic oldEpic = epics.get(id);
@@ -110,29 +107,27 @@ public class InMemoryTaskManager implements TaskManager {
         } else {
             System.out.println("Задачи с ID " + id + " не существует!");
         }
-        return epic;
     }
 
     @Override
-    public Subtask createSubtask(Subtask subtask, int epicId) {
+    public void createSubtask(Subtask subtask, int epicId) {
         if (epics.containsKey(epicId)) {
             Subtask newSubtask = new Subtask(subtask.getName(), subtask.getDescription(), subtask.getStatus());
             newSubtask.setId(id);
             newSubtask.setEpicId(epicId);
             subtasks.put(id, newSubtask);
+            allTasks.put(id, newSubtask);
             Epic epic = epics.get(epicId);
             epic.getSubtasks().add(newSubtask);
             updateEpic(epic, epicId);
             id++;
-            return newSubtask;
         } else {
             System.out.println("Эпика с ID " + epicId + " не существует!");
         }
-        return null;
     }
 
     @Override
-    public Subtask updateSubtask(Subtask subtask, int id) {
+    public void updateSubtask(Subtask subtask, int id) {
         if (subtasks.containsKey(id)) {
             Subtask oldSubtask = subtasks.get(id);
             subtask.setId(id);
@@ -148,15 +143,13 @@ public class InMemoryTaskManager implements TaskManager {
                 }
             }
             updateEpic(epic, epic.getId());
-            return subtask;
         } else {
             System.out.println("Задачи с ID " + id + " не существует!");
         }
-        return null;
     }
 
     @Override
-    public List<Task> getHistory() {
+    public List<Integer> getHistory() {
         return historyManager.getHistory();
     }
 

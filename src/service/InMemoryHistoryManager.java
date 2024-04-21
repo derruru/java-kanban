@@ -14,7 +14,26 @@ public class InMemoryHistoryManager implements HistoryManager {
         this.receivedTasks = new HashMap<>();
     }
 
-    public void linkLast(Task task) {
+    @Override
+    public void add(Task task) {
+        if (task != null) {
+            remove(task.getId());
+            linkLast(task);
+        }
+    }
+
+    @Override
+    public void remove(int id) {
+        removeNode(receivedTasks.get(id));
+    }
+
+    @Override
+    public List<Integer> getHistory() {
+        return getTasks();
+    }
+
+
+    private void linkLast(Task task) {
         final Node oldTail = tail;
         final Node newNode = new Node(oldTail, task, null);
         receivedTasks.put(task.getId(), newNode);
@@ -26,17 +45,17 @@ public class InMemoryHistoryManager implements HistoryManager {
         tail = newNode;
     }
 
-    public List<Task> getTasks() {
-        List<Task> tasks = new ArrayList<>();
+    private List<Integer> getTasks() {
+        List<Integer> tasks = new ArrayList<>();
         Node currentNode = head;
         while (!(currentNode == null)) {
-            tasks.add(currentNode.data);
+            tasks.add(currentNode.data.getId());
             currentNode = currentNode.next;
         }
         return tasks;
     }
 
-    public void removeNode(Node node) {
+    private void removeNode(Node node) {
         if (!(node == null)) {
             final Node next = node.next;
             final Node prev = node.prev;
@@ -57,34 +76,16 @@ public class InMemoryHistoryManager implements HistoryManager {
         }
     }
 
-    @Override
-    public void add(Task task) {
-        if (task != null) {
-            remove(task.getId());
-            linkLast(task);
+    class Node {
+        public Task data;
+        public Node next;
+        public Node prev;
+
+        public Node(Node prev, Task data, Node next) {
+            this.data = data;
+            this.next = next;
+            this.prev = prev;
         }
-    }
-
-    @Override
-    public void remove(int id) {
-        removeNode(receivedTasks.get(id));
-    }
-
-    @Override
-    public List<Task> getHistory() {
-        return getTasks();
-    }
-}
-
-class Node {
-    public Task data;
-    public Node next;
-    public Node prev;
-
-    public Node(Node prev, Task data, Node next) {
-        this.data = data;
-        this.next = next;
-        this.prev = prev;
     }
 }
 

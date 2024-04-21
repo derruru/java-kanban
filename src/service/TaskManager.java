@@ -9,9 +9,9 @@ import java.util.List;
 
 public interface TaskManager {
 
-    Task createTask(Task task);
+    void createTask(Task task);
 
-    Task updateTask(Task task, int id);
+    void updateTask(Task task, int id);
 
     ArrayList<Task> getAllTasks();
 
@@ -21,13 +21,13 @@ public interface TaskManager {
 
     void removeAll();
 
-    Epic createEpic(Epic epic);
+    void createEpic(Epic epic);
 
-    Epic updateEpic(Epic epic, int id);
+    void updateEpic(Epic epic, int id);
 
-    Subtask createSubtask(Subtask subtask, int epicId);
+    void createSubtask(Subtask subtask, int epicId);
 
-    Subtask updateSubtask(Subtask subtask, int id);
+    void updateSubtask(Subtask subtask, int id);
 
-    List<Task> getHistory();
+    List<Integer> getHistory();
 }

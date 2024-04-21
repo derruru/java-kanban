@@ -10,6 +10,10 @@ public class Epic extends Task {
         subtasks = new ArrayList<>();
     }
 
+    public Epic(int id, String name, String description, Status status) {
+        super(id, name, description, status);
+    }
+
     @Override
     public String toString() {
         return "Epic{" +
