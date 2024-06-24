@@ -46,9 +46,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     @Override
     public Task getTask(int id) {
-        super.getTask(id);
+        Task task = super.getTask(id);
         save();
-        return allTasks.get(id);
+        return task;
     }
 
     public static FileBackedTasksManager loadFromFile(Path file) {
@@ -147,29 +147,4 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return null;
     }
 
-    public static void main(String[] args) {
-        Task task = new Task("name", "des", Status.NEW);
-        Task task2 = new Task("name2", "des2", Status.NEW);
-        Epic epic = new Epic("epic", "des");
-        Epic epic2 = new Epic("epic2", "des");
-        Subtask subtask = new Subtask("sub", "des", Status.IN_PROGRESS);
-        Subtask subtask1 = new Subtask("sub1", "des", Status.NEW);
-        Subtask subtask2 = new Subtask("sub2", "des", Status.DONE);
-
-        TaskManager taskManager = Managers.getDefault();
-        taskManager.createTask(task);
-        taskManager.createTask(task2);
-        taskManager.createEpic(epic);
-        taskManager.createEpic(epic2);
-        taskManager.createSubtask(subtask, 3);
-        taskManager.createSubtask(subtask1, 3);
-        taskManager.createSubtask(subtask2, 3);
-
-        taskManager.getTask(2);
-        taskManager.getTask(1);
-
-        TaskManager taskManager1 = loadFromFile(Paths.get("history.src"));
-        System.out.println(taskManager1.getHistory());
-        System.out.println(taskManager1.getAllTasks());
-    }
 }
