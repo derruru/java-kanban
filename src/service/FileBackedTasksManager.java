@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
 
@@ -60,7 +61,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             while (reader.ready()) {
                 lines.add(reader.readLine());
             }
-            for (int i = 1; i < lines.size() - 3; i++) {
+            for (int i = 1; i < lines.size() - 2; i++) {
                 Task task = fromString(lines.get(i));
                 manager.allTasks.put(task.getId(), task);
                 if (task.getClass().equals(Task.class)) {
@@ -72,8 +73,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                 }
             }
             List<Integer> history = historyFromString(lines.get(lines.size() - 1));
-            for (int id : history) {
-                manager.getTask(id);
+            if (history != null) {
+                for (int id : history) {
+                    manager.getTask(id);
+                }
             }
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка сохранения в файл");
@@ -91,12 +94,15 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     private static List<Integer> historyFromString(String value) {
-        String[] parts = value.split(",");
-        List<Integer> taskId = new ArrayList<>();
-        for (int i = 0; i < parts.length; i++) {
-            taskId.add(Integer.valueOf(parts[i]));
+        if (!Objects.equals(value, "")) {
+            String[] parts = value.split(",");
+            List<Integer> taskId = new ArrayList<>();
+            for (int i = 0; i < parts.length; i++) {
+                taskId.add(Integer.valueOf(parts[i]));
+            }
+            return taskId;
         }
-        return taskId;
+        return null;
     }
 
     private void save() {
@@ -115,11 +121,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     private String toString(Task task) {
         if (!task.getClass().equals(Subtask.class)) {
             return task.getId() + "," + getType(task) + "," + task.getName() + "," + task.getStatus() + "," +
-                    task.getDescription() + "," + task.getDuration() + "'" + task.getStartTime() + "," +
+                    task.getDescription() + "," + task.getDuration() + "," + task.getStartTime() + "," +
                     task.getEndTime() + "\n";
         } else {
             return task.getId() + "," + getType(task) + "," + task.getName() + "," + task.getStatus() + "," +
-                    task.getDescription() + task.getDuration() + "'" + task.getStartTime() + "," +
+                    task.getDescription() + task.getDuration() + "," + task.getStartTime() + "," +
                     task.getEndTime() + "," + ((Subtask) task).getEpicId() + "\n";
         }
     }
@@ -153,5 +159,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
         return null;
     }
+
 
 }

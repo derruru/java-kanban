@@ -6,6 +6,7 @@ import storage.Task;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskManager {
 
@@ -30,4 +31,6 @@ public interface TaskManager {
     void updateSubtask(Subtask subtask, int id);
 
     List<Integer> getHistory();
+
+    Set<Task> getPrioritizedTasks();
 }

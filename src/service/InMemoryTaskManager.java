@@ -5,9 +5,7 @@ import storage.Status;
 import storage.Subtask;
 import storage.Task;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
     protected final HashMap<Integer, Task> tasks = new HashMap<>();
@@ -20,30 +18,34 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createTask(Task task) {
         Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus(), task.getDuration(), task.getStartTime());
-        newTask.setId(id);
-        tasks.put(id, newTask);
-        allTasks.put(id, newTask);
-        updateId();
+        if (isTasksOverlap(newTask)) {
+            newTask.setId(id);
+            tasks.put(id, newTask);
+            allTasks.put(id, newTask);
+            updateId();
+        } else {
+            System.out.println("Задачи пересекаются!");
+        }
     }
 
     @Override
     public void updateTask(Task task, int id) {
-        if (tasks.containsKey(id)) {
-            task.setId(id);
-            tasks.put(id, task);
-            allTasks.put(id, task);
+        if (isTasksOverlap(task)) {
+            if (tasks.containsKey(id)) {
+                task.setId(id);
+                tasks.put(id, task);
+                allTasks.put(id, task);
+            } else {
+                System.out.println("Задачи с ID " + id + " не существует!");
+            }
         } else {
-            System.out.println("Задачи с ID " + id + " не существует!");
+            System.out.println("Задачи пересекаются!");
         }
     }
 
     @Override
     public ArrayList<Task> getAllTasks() {
-        ArrayList<Task> listTasks = new ArrayList<>();
-        for (Task task : allTasks.values()) {
-            listTasks.add(task);
-        }
-        return listTasks;
+        return new ArrayList<>(allTasks.values());
     }
 
     @Override
@@ -88,25 +90,29 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createEpic(Epic epic) {
         Epic newEpic = new Epic(epic.getName(), epic.getDescription());
-        newEpic.setId(id);
-        newEpic.setStatus(findStatus(newEpic));
-        epics.put(id, newEpic);
-        allTasks.put(id, newEpic);
-        updateId();
+        if (isTasksOverlap(newEpic)) {
+            newEpic.setId(id);
+            newEpic.setStatus(findStatus(newEpic));
+            epics.put(id, newEpic);
+            allTasks.put(id, newEpic);
+            updateId();
+        } else System.out.println("Задачи пересекаются!");
     }
 
     @Override
     public void updateEpic(Epic epic, int id) {
-        if (epics.containsKey(id)) {
-            epic.setId(id);
-            Epic oldEpic = epics.get(id);
-            epic.setSubtasks(oldEpic.getSubtasks());
-            epic.setStatus(findStatus(epic));
-            epics.put(id, epic);
-            allTasks.put(id, epic);
-        } else {
-            System.out.println("Задачи с ID " + id + " не существует!");
-        }
+        if (isTasksOverlap(epic)) {
+            if (epics.containsKey(id)) {
+                epic.setId(id);
+                Epic oldEpic = epics.get(id);
+                epic.setSubtasks(oldEpic.getSubtasks());
+                epic.setStatus(findStatus(epic));
+                epics.put(id, epic);
+                allTasks.put(id, epic);
+            } else {
+                System.out.println("Задачи с ID " + id + " не существует!");
+            }
+        } else System.out.println("Задачи пересекаются!");
     }
 
     @Override
@@ -114,14 +120,18 @@ public class InMemoryTaskManager implements TaskManager {
         if (epics.containsKey(epicId)) {
             Subtask newSubtask = new Subtask(subtask.getName(), subtask.getDescription(), subtask.getStatus(),
                     subtask.getDuration(), subtask.getStartTime(), epicId);
-            newSubtask.setId(id);
-            newSubtask.setEpicId(epicId);
-            subtasks.put(id, newSubtask);
-            allTasks.put(id, newSubtask);
-            Epic epic = epics.get(epicId);
-            epic.getSubtasks().add(newSubtask);
-            updateEpic(epic, epicId);
-            id++;
+            if (isTasksOverlap(subtask)) {
+                newSubtask.setId(id);
+                newSubtask.setEpicId(epicId);
+                subtasks.put(id, newSubtask);
+                allTasks.put(id, newSubtask);
+                Epic epic = epics.get(epicId);
+                epic.getSubtasks().add(newSubtask);
+                updateEpic(epic, epicId);
+                id++;
+            } else {
+                System.out.println("Задачи пересекаются!");
+            }
         } else {
             System.out.println("Эпика с ID " + epicId + " не существует!");
         }
@@ -129,30 +139,53 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateSubtask(Subtask subtask, int id) {
-        if (subtasks.containsKey(id)) {
-            Subtask oldSubtask = subtasks.get(id);
-            subtask.setId(id);
-            subtask.setEpicId(oldSubtask.getEpicId());
-            subtasks.put(id, subtask);
-            Epic epic = epics.get(oldSubtask.getEpicId());
-            //for (Subtask sub : epic.getSubtasks()) {
-            for (int i = 1; i < epic.getSubtasks().size(); i++) {
-                if (epic.getSubtasks().get(i).getId() == subtask.getId()) {
-                    epic.getSubtasks().remove(epic.getSubtasks().get(i));
-                    epic.getSubtasks().add(subtask);
-                } else {
-                    epic.getSubtasks().add(subtask);
+        if(isTasksOverlap(subtask)) {
+            if (subtasks.containsKey(id)) {
+                Subtask oldSubtask = subtasks.get(id);
+                subtask.setId(id);
+                subtask.setEpicId(oldSubtask.getEpicId());
+                subtasks.put(id, subtask);
+                Epic epic = epics.get(oldSubtask.getEpicId());
+                //for (Subtask sub : epic.getSubtasks()) {
+                for (int i = 1; i < epic.getSubtasks().size(); i++) {
+                    if (epic.getSubtasks().get(i).getId() == subtask.getId()) {
+                        epic.getSubtasks().remove(epic.getSubtasks().get(i));
+                        epic.getSubtasks().add(subtask);
+                    } else {
+                        epic.getSubtasks().add(subtask);
+                    }
                 }
+                updateEpic(epic, epic.getId());
+            } else {
+                System.out.println("Задачи с ID " + id + " не существует!");
             }
-            updateEpic(epic, epic.getId());
-        } else {
-            System.out.println("Задачи с ID " + id + " не существует!");
-        }
+        } else System.out.println("Задачи пересекаются!");
     }
 
     @Override
     public List<Integer> getHistory() {
         return historyManager.getHistory();
+    }
+
+    @Override
+    public Set<Task> getPrioritizedTasks() {
+        Set<Task> sortedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
+        sortedTasks.addAll(tasks.values());
+        return sortedTasks;
+    }
+
+    private boolean isTasksOverlap(Task task) {
+        if (getPrioritizedTasks().isEmpty()) {
+            return true;
+        }
+        for (Task sortedTask : getPrioritizedTasks()) {
+            if ((sortedTask.getStartTime().isBefore(task.getStartTime()) &&
+                    sortedTask.getEndTime().isBefore(task.getStartTime())) ||
+            sortedTask.getStartTime().isAfter(task.getEndTime()) && sortedTask.getEndTime().isAfter(task.getEndTime())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void updateId() {
