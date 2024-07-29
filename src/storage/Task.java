@@ -1,5 +1,8 @@
 package storage;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class Task {
@@ -7,24 +10,51 @@ public class Task {
     private String name;
     private String description;
     private Status status;
+    private int duration;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     public Task(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
-    public Task(String name, String description, Status status) {
+    public Task(int id, String name, String description, Status status) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
     }
 
-    public Task(int id, String name, String description, Status status) {
+    public Task(String name, String description, Status status, int duration, LocalDateTime startTime) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        this.duration = duration;
+        this.startTime = startTime;
+        this.endTime = getEndTime();
+    }
+
+    public Task(int id, String name, String description, Status status, int duration, LocalDateTime startTime) {
         this.id = id;
         this.name = name;
         this.status = status;
         this.description = description;
+        this.duration = duration;
+        this.startTime = startTime;
+        this.endTime = getEndTime();
     }
+    public Task(int id, String name, String description, Status status, int duration, LocalDateTime startTime,
+                LocalDateTime endTime) {
+        this.id = id;
+        this.name = name;
+        this.status = status;
+        this.description = description;
+        this.duration = duration;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
     public int getId() {
         return id;
     }
@@ -57,6 +87,30 @@ public class Task {
         this.status = status;
     }
 
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return startTime.plusMinutes(duration);
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -76,7 +130,11 @@ public class Task {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", Status='" + status + '\'' +
+                ", status=" + status +
+                ", duration=" + duration +
+                ", startTime=" + startTime +
+                ", endTime=" + getEndTime() +
                 '}';
     }
+
 }

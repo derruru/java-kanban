@@ -19,7 +19,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createTask(Task task) {
-        Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus());
+        Task newTask = new Task(task.getName(), task.getDescription(), task.getStatus(), task.getDuration(), task.getStartTime());
         newTask.setId(id);
         tasks.put(id, newTask);
         allTasks.put(id, newTask);
@@ -112,7 +112,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createSubtask(Subtask subtask, int epicId) {
         if (epics.containsKey(epicId)) {
-            Subtask newSubtask = new Subtask(subtask.getName(), subtask.getDescription(), subtask.getStatus());
+            Subtask newSubtask = new Subtask(subtask.getName(), subtask.getDescription(), subtask.getStatus(),
+                    subtask.getDuration(), subtask.getStartTime(), epicId);
             newSubtask.setId(id);
             newSubtask.setEpicId(epicId);
             subtasks.put(id, newSubtask);
